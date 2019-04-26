@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>代谢病论文检索</title>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript" src="layui/layui.js"></script>
+    <script type="text/javascript" src="js/page.js"></script>
+    <link rel="stylesheet" href="layui/css/layui.css"/>
+
+    <script type="text/javascript">
+
+    </script>
+    <style>
+        /*分页pages*/
+
+        .Pagination{padding-top:100px; margin-left:35%;height: 55px;_height: 45px; line-height: 20px;color:
+                #565656; clear:both;}
+        .Pagination span{margin-right: 5px;display: block;float: left;margin-left: 5px;}
+        .Pagination span b{padding: 0 2px;}
+        .Pagination div {float:left}
+        .Pagination a{ padding: 0px;font-size: 12px;text-decoration: none;display: block;float: left;color: #565656;border: 1px solid #cacaca;height: 20px;line-height: 20px;padding: 0 10px;margin: 0 2px;}
+        .Pagination .Ellipsis {line-height: 32px;overflow: hidden; display:none;}
+        cite.FormNum{display: block;float: left;line-height: 20px;height: 20px; font-style: normal; padding-left:10px;}
+        #PageNum{ color:#777;width: 30px;height: 20px;line-height: 20px; border: 1px solid #cacaca; margin:0 5px; text-align:center;}
+        .Pagination a:hover,.Pagination a.PageCur{background-color: #ee6600;border: 1px solid #d64c01;color: #ffffff; }
+
+        .line-limit-length {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap; //文本不换行，这样超出一行的部分被截取，显示...
+        }
+
+        .tip input{
+            border: none;
+            border-bottom: 1px solid silver;
+        }
+       </style>
+</head>
+<body style="background-color: #8D8D8D;">
+
+<div class="layui-fluid" style="margin-top: 10px">
+    <div class="layui-row">
+        <div class="layui-col-md12">
+            <div class="layui-card" style="width: 100%;">
+                <div class="layui-card-header">
+                    <h3><b>请输入相关信息</b></h3>
+                </div>
+                <form action="/query" method="get">
+                    <div class="layui-card-body">
+                        <div class="layui-form">
+                            <div class="layui-form-item">
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">关键字:</label>
+                                    <input class="layui-input" style="width: 293px;" name = "keyword" th:value = "${keyword}"></iput>
+                                </div>
+                               <div class="layui-inline">
+                                    <label class="layui-form-label">作者:</label>
+                                    <input class="layui-input" style="width: 293px;" name = "author" th:value="${author}"></iput>
+                                </div>
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">期刊来源:</label>
+                                    <input class="layui-input" style="width: 296px;" name="source" th:value="${source}"></iput>
+                                </div>
+                                <div class="layui-inline">
+                                    <label class="layui-form-label">时间选择:</label>
+                                    <div class="layui-inline">
+                                        <input type="text" id="st" class="layui-input test-item"  name="lowerTime" th:value="${lowerTime}">
+                                    </div>
+                                    <div class="layui-inline">
+                                        <input type="text" id="ed" class="layui-input test-item"  name="upperTime" th:value="${upperTime}">
+                                    </div>
+                                </div>
+                                <input type="submit" value = "搜索" style="float: right;" class="layui-btn layui-btn-normal" />
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-card" style="margin-top: 10px; max-height: 1000px;">
+        <div class="layui-card-header">
+            <h3><b>搜索结果:</b></h3>
+        </div>
+        <div class="layui-card-body tip">
+            <div class="layui-row">
+                <ol id="data_list">
+                    <div th:if="${flag == true}">
+                        <p style="font-size: 20px; text-align: center; padding: 50px;">
+                            抱歉，没有找到任何搜索记录...
+                        </p>
+                    </div>
+                    <li th:each="paper, status: ${result}">
+                        <div class="layui-col-md6" style="margin-bottom: 5px;">
+                            <div class="layui-card" style="width: 98%">
+                                <div class="layui-card-header" style="background-color: silver">
+                                    <h3 style="display: inline" th:utext="${paper.title}"></h3>
+                                    <a th:href="${#request.getContextPath()}+'/download/?fileName='+${paper.fileName}" class="layui-btn layui-btn-normal layui-btn-xs" style="float: right; margin-top: 10px;">
+                                        下载</a>
+                                </div>
+                                <div class="layui-card-body">
+                                    <div class="layui-form">
+                                        <div class="layui-form-item">
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label" style="width: 50px;">作者: </label>
+                                                <div class="layui-input-inline" style="width: 110px;">
+                                                    <input th:id="${status.index + 1}" class="layui-input line-limit-length" disabled="disabled" th:value="${paper.author}" style="text-align: center; width: 100px;">
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label" style="width: 50px;">来源: </label>
+                                                <div class="layui-input-inline" style="width: 110px;">
+                                                    <input th:id="${status.index + 11}" class="layui-input line-limit-length" disabled="disabled" th:value="${paper.source}" style="text-align: center; width: 100px;">
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label" style="width: 60px;">发布时间: </label>
+                                                <div class="layui-input-inline" style="width: 110px;">
+                                                    <input class="layui-input" disabled="disabled" th:value="${paper.date}" style="text-align: center; width: 100px;">
+                                                </div>
+                                            </div>
+                                            <div class="layui-inline">
+                                                <label class="layui-form-label" style="width: 50px;">页数: </label>
+                                                <div class="layui-input-inline" style="width: 110px;">
+                                                    <input class="layui-input" disabled="disabled" th:value="${paper.pageCount}" style="text-align: center; width: 100px;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label" style="width: 50px;">关键字: </label>
+                                            <p th:id="${status.index + 111}" class="line-limit-length"  style="padding: 7px; width: 85%; border-bottom: 1px solid silver; color: #545454" th:utext="${paper.keyword}"></p>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label" style="width: 50px;">摘要: </label>
+                                            <p th:id="${status.index + 1111}" class="line-limit-length" style="padding: 7px; width: 85%; border-bottom: 1px solid silver; color: #545454" th:utext="${paper.summary}"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ol>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $('#data_list').Pages({
+        PagesClass:'li', //需要分页的元素
+        PagesMth:6, //每页显示个数
+    })
+
+    layui.use(['laydate', 'layer'], function () {
+        var laydate = layui.laydate
+            , layer = layui.layer;
+
+        laydate.render({
+            elem: '#st'
+        })
+
+        laydate.render({
+            elem: "#ed"
+        })
+
+
+       $(document).on('mouseover', '.line-limit-length', function () {
+           var id = '#' + $(this).attr('id');
+           var value;
+           console.log($(this).attr('id'));
+           if(parseInt($(this).attr('id')) < 100){
+               value = $(this).val();
+           }else {
+               value = $(this).text();
+           }
+           layer.tips(value, id, {
+                tips: 1,
+                time: 1000
+            });
+        })
+    })
+
+</script>
+
+</body>
+</html>
